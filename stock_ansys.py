@@ -73,7 +73,7 @@ class StockAnalysis:
 
         time.sleep(2)
         xpath = '//*[@id="iwc-table-container"]/div[5]/div[1]/div[2]/table/tbody'
-        raw_data = wd.find_element_by_xpath(xpath).text
+        raw_data = wd.find_element("xpath", xpath).text
         data_list = re.split('\n', raw_data)
 
         wd.quit()
