@@ -20,9 +20,11 @@ class StockAnalysis:
     # _ua = UserAgent(path="fake-useragent-0.1.11.json")
 
     def __init__(self):
-        self.up_limit = None
-        self.down_limit = None
         self.limit_renew_time = ''
+        self.up_limit = None
+        self.up_limit_keys = None
+        self.down_limit = None
+        self.down_limit_keys = None
 
     def up_down_limit(self):
         # 涨停板
@@ -60,20 +62,20 @@ class StockAnalysis:
 
         url = f"http://www.iwencai.com/unifiedwap/result?w={url_chip}%EF%BC%9B%E9%9D%9Est%EF%BC%9B&querytype=stock"
         wd.get(url)
-        print("selenium get successes!")
+        print("selenium get succeeded!")
 
         # TODO: 解决网页未加载完成的问题
         time.sleep(1)
         xpath = '//*[@id="iwcTableWrapper"]/div[2]/div[2]'
         e = wd.find_element("xpath", xpath)
         e.click()
-        print("selenium click1 successes!")
+        print("selenium click1 succeeded!")
 
         time.sleep(1)
         xpath = '//*[@id="iwcTableWrapper"]/div[2]/div[2]/div/ul/li[3]'
         e = wd.find_element("xpath", xpath)
         e.click()
-        print("selenium click2 successes!")
+        print("selenium click2 succeeded!")
 
         time.sleep(3)
         xpath = '//*[@id="iwc-table-container"]/div[5]/div[1]/div[2]/table/tbody'
@@ -95,21 +97,41 @@ class StockAnalysis:
 
         if order == 'up':
             self.up_limit = pd.DataFrame(result_list, index=index, columns=columns)
-        else:
+        elif order == 'down':
             self.down_limit = pd.DataFrame(result_list, index=index, columns=columns)
 
-    def limit_print(self):
-        if self.up_limit is not None:
-            print('-' * 30)
-            print(self.up_limit)
-        if self.down_limit is not None:
-            print('-' * 30)
-            print(self.down_limit)
+        print('limit process succeeded')
+
+        # 处理关键词
+        keys = {}
+        if order == 'up':
+            keys_list1 = self.up_limit.loc[:, '涨停原因'].tolist()
+            for i in keys_list1:
+                keys_list2 = re.split("[+]", i)
+                for j in keys_list2:
+                    if j in keys:
+                        keys[j] += 1
+                    else:
+                        keys[j] = 1
+            self.up_limit_keys = sorted(keys.items(), key=lambda kv: kv[1], reverse=True)
+
+        print('limit keys process succeeded')
+
+        return 'successful'
+
+    # def limit_print(self):
+    #     if self.up_limit is not None:
+    #         print('-' * 30)
+    #         print(self.up_limit)
+    #     if self.down_limit is not None:
+    #         print('-' * 30)
+    #         print(self.down_limit)
 
     def limit_webrenew(self, file):
         with open(file, 'r', encoding='utf-8') as f:
             data = f.read()
 
+        # 1. 涨跌停板 TODO: 补跌停板的
         limits = []
         if self.up_limit is not None:
             limits.append((self.up_limit, '涨停板'))
@@ -118,22 +140,36 @@ class StockAnalysis:
 
         ins = ''
         for limit in limits:
-            ins += f'<caption>{limit[1]}  更新时间：{self.limit_renew_time}</caption>\n\t\t<tr>'
+            ins += f'\n\t\t<caption>{limit[1]}  更新时间：{self.limit_renew_time}</caption>\n\t\t<tr>'
             for i in limit[0].columns.tolist():
-                ins += '<th>'
-                ins += str(i)
-                ins += '</th>'
+                ins += f'<th>{str(i)}</th>'
             ins += '</tr>'
             for i in range(limit[0].shape[0]):
                 ins += '\n\t\t<tr>'
                 for j in limit[0].iloc[i].tolist():
-                    ins += '<td>'
-                    ins += str(j)
-                    ins += '</td>'
+                    ins += f'<td>{str(j)}</td>'
                 ins += '</tr>'
 
-        new_data = re.sub('<table>(.*)</table>', f'<table>\n\t\t{ins}\n\t</table>', data, flags=re.S)
+        new_data = re.sub('<table id="upLimit">(.*?)</table>', f'<table id="upLimit">{ins}\n\t</table>',
+                          data, flags=re.S)
 
+        # 2. 涨跌停板关键词 TODO: 补跌停板的关键词
+        limits = []
+        if self.up_limit_keys is not None:
+            limits.append((self.up_limit_keys, '涨停板关键词'))
+        if self.down_limit_keys is not None:
+            limits.append((self.down_limit_keys, '跌停板关键词'))
+
+        ins = ''
+        for limit in limits:
+            ins += f'\n\t\t<caption>{limit[1]}</caption>\n\t\t<tr><th>关键词</th><th>次数</th></tr>'
+            for i in limit[0]:
+                ins += f'\n\t\t<tr><td>{i[0]}</td><td>{i[1]}</td></tr>'
+
+        new_data = re.sub('<table id="upLimitKeys">(.*?)</table>', f'<table id="upLimitKeys">{ins}\n\t</table>',
+                          new_data, flags=re.S)
+
+        # 保存
         with open(file, 'w', encoding='utf-8') as f:
             f.write(new_data)
 
