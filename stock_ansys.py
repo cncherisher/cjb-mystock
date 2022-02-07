@@ -11,7 +11,7 @@ pd.set_option('expand_frame_repr', False)
 pd.set_option('display.max_columns', None)
 
 
-class Review:
+class StockAnalysis:
     _headers = {
         'User-Agent': '',
         'Host': ''
@@ -19,36 +19,40 @@ class Review:
     _ua = UserAgent(path="fake-useragent-0.1.11.json")
 
     def __init__(self):
-        pass
+        self.up_limit = None
+        self.down_limit = None
 
     def up_down_limit(self):
         # 涨停板
-        up_limit = self.limit_get(1)
+        self.limit_get('up')
         # 跌停板
-        # down_limit = self.limit_get(0)
+        # self.limit_get('down')
 
-        # self.limit_print(up_limit)
-        self.limit_webrenew(up_limit)
-        # self.limit_print(down_limit)
+        # self.limit_print()
 
-    @staticmethod
-    def limit_get(order):
-        if order == 1:
+        self.limit_webrenew('./html/limit.html')
+
+    def limit_get(self, order):
+        print(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()))
+        if order == 'up':
             url_chip = '%E6%B6%A8%E5%81%9C%E6%9D%BF'
             nums_div = 19
-            col_select = [(1, 7), (9, 10), (14, 18)]
-            columns = ['股票代码', '股票简称', '现价', '涨跌幅', '首次涨停时间', '最终涨停时间', '涨停原因', '开板次数', '流通市值', '几天几板', '涨停类型']
-        elif order == 0:
+            col_select = [(1, 4), (9, 10), (14, 18)]  # Customize
+            columns = ['股票代码', '股票简称', '现价', '涨停原因', '开板次数', '流通市值', '几天几板', '涨停类型']  # Customize
+        elif order == 'down':
             url_chip = '%E8%B7%8C%E5%81%9C%E6%9D%BF'
             nums_div = 17
-            col_select = [(1, 7), (8, 9), (14, 16)]
-            columns = ['股票代码', '股票简称', '现价', '涨跌幅', '首次跌停时间', '最终跌停时间', '连续跌停天数', '跌停原因类型', '涨停类型']
+            col_select = [(1, 7), (8, 9), (14, 16)]  # Customize
+            columns = ['股票代码', '股票简称', '现价', '涨跌幅', '首次跌停时间', '最终跌停时间', '连续跌停天数', '跌停原因类型', '涨停类型']  # Customize
         else:
             return 'error'
 
         # 无头浏览器获取数据
         opt = webdriver.ChromeOptions()
-        opt.headless = True
+        opt.add_argument('--headless')
+        opt.add_argument('--no-sandbox')
+        opt.add_argument('--disable-dev-shm-usage')
+        opt.add_argument('--disable-gpu')
         wd = webdriver.Chrome(options=opt)
 
         url = f"http://www.iwencai.com/unifiedwap/result?w={url_chip}%EF%BC%9B%E9%9D%9Est%EF%BC%9B&querytype=stock"
@@ -57,17 +61,17 @@ class Review:
 
         time.sleep(1)
         xpath = '//*[@id="iwcTableWrapper"]/div[2]/div[2]'
-        e = wd.find_element_by_xpath(xpath)
+        e = wd.find_element("xpath", xpath)
         e.click()
         print("selenium click1 successes!")
 
         time.sleep(1)
         xpath = '//*[@id="iwcTableWrapper"]/div[2]/div[2]/div/ul/li[3]'
-        e = wd.find_element_by_xpath(xpath)
+        e = wd.find_element("xpath", xpath)
         e.click()
         print("selenium click2 successes!")
 
-        time.sleep(1)
+        time.sleep(2)
         xpath = '//*[@id="iwc-table-container"]/div[5]/div[1]/div[2]/table/tbody'
         raw_data = wd.find_element_by_xpath(xpath).text
         data_list = re.split('\n', raw_data)
@@ -84,37 +88,49 @@ class Review:
             result_list.append(row_list)
 
         index = [i for i in range(1, nums + 1)]
-        limit_df = pd.DataFrame(result_list, index=index, columns=columns)
 
-        return limit_df
+        if order == 'up':
+            self.up_limit = pd.DataFrame(result_list, index=index, columns=columns)
+        else:
+            self.down_limit = pd.DataFrame(result_list, index=index, columns=columns)
 
-    @staticmethod
-    def limit_print(limit_list):
-        print('-' * 30)
-        print(limit_list)
+    def limit_print(self):
+        if self.up_limit is not None:
+            print('-' * 30)
+            print(self.up_limit)
+        if self.down_limit is not None:
+            print('-' * 30)
+            print(self.down_limit)
 
-    @staticmethod
-    def limit_webrenew(limit_list):
-        with open('./html/limit.html', 'r', encoding='utf-8') as f:
+    def limit_webrenew(self, file):
+        with open(file, 'r', encoding='utf-8') as f:
             data = f.read()
 
-        ins = '<tr>'
-        for i in limit_list.columns.tolist():
-            ins += '<th>'
-            ins += str(i)
-            ins += '</th>'
-        ins += '</tr>'
-        for i in range(limit_list.shape[0]):
-            ins += '\n\t\t<tr>'
-            for j in limit_list.iloc[i].tolist():
-                ins += '<td>'
-                ins += str(j)
-                ins += '</td>'
+        limits = []
+        if self.up_limit is not None:
+            limits.append((self.up_limit, '涨停板'))
+        if self.down_limit is not None:
+            limits.append((self.down_limit, '跌停板'))
+
+        ins = ''
+        for limit in limits:
+            ins += f'<caption>{limit[1]}</caption>\n\t\t<tr>'
+            for i in limit[0].columns.tolist():
+                ins += '<th>'
+                ins += str(i)
+                ins += '</th>'
             ins += '</tr>'
+            for i in range(limit[0].shape[0]):
+                ins += '\n\t\t<tr>'
+                for j in limit[0].iloc[i].tolist():
+                    ins += '<td>'
+                    ins += str(j)
+                    ins += '</td>'
+                ins += '</tr>'
 
-        new_data = re.sub('</caption>(.*)</table>', f'</caption>\n\t\t{ins}\n\t</table>', data, flags=re.S)
+        new_data = re.sub('<table>(.*)</table>', f'<table>\n\t\t{ins}\n\t</table>', data, flags=re.S)
 
-        with open('./html/limit.html', 'w', encoding='utf-8') as f:
+        with open(file, 'w', encoding='utf-8') as f:
             f.write(new_data)
 
     @classmethod
@@ -130,8 +146,8 @@ class Review:
 
 
 def main():
-    r = Review()
-    r.up_down_limit()
+    sa = StockAnalysis()
+    sa.up_down_limit()
 
 
 if __name__ == '__main__':
