@@ -1,26 +1,28 @@
 # coding:utf-8
 
-import requests
-from fake_useragent import UserAgent
+# import requests
+# from fake_useragent import UserAgent
 from selenium import webdriver
 import time
 import re
 import pandas as pd
+from apscheduler.schedulers.blocking import BlockingScheduler
 
 pd.set_option('expand_frame_repr', False)
 pd.set_option('display.max_columns', None)
 
 
 class StockAnalysis:
-    _headers = {
-        'User-Agent': '',
-        'Host': ''
-    }
-    _ua = UserAgent(path="fake-useragent-0.1.11.json")
+    # _headers = {
+    #     'User-Agent': '',
+    #     'Host': ''
+    # }
+    # _ua = UserAgent(path="fake-useragent-0.1.11.json")
 
     def __init__(self):
         self.up_limit = None
         self.down_limit = None
+        self.limit_renew_time = ''
 
     def up_down_limit(self):
         # 涨停板
@@ -33,7 +35,8 @@ class StockAnalysis:
         self.limit_webrenew('./html/limit.html')
 
     def limit_get(self, order):
-        print(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()))
+        self.limit_renew_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+        print(self.limit_renew_time)
         if order == 'up':
             url_chip = '%E6%B6%A8%E5%81%9C%E6%9D%BF'
             nums_div = 19
@@ -59,6 +62,7 @@ class StockAnalysis:
         wd.get(url)
         print("selenium get successes!")
 
+        # TODO: 解决网页未加载完成的问题
         time.sleep(1)
         xpath = '//*[@id="iwcTableWrapper"]/div[2]/div[2]'
         e = wd.find_element("xpath", xpath)
@@ -71,7 +75,7 @@ class StockAnalysis:
         e.click()
         print("selenium click2 successes!")
 
-        time.sleep(2)
+        time.sleep(3)
         xpath = '//*[@id="iwc-table-container"]/div[5]/div[1]/div[2]/table/tbody'
         raw_data = wd.find_element("xpath", xpath).text
         data_list = re.split('\n', raw_data)
@@ -114,7 +118,7 @@ class StockAnalysis:
 
         ins = ''
         for limit in limits:
-            ins += f'<caption>{limit[1]}</caption>\n\t\t<tr>'
+            ins += f'<caption>{limit[1]}  更新时间：{self.limit_renew_time}</caption>\n\t\t<tr>'
             for i in limit[0].columns.tolist():
                 ins += '<th>'
                 ins += str(i)
@@ -133,21 +137,28 @@ class StockAnalysis:
         with open(file, 'w', encoding='utf-8') as f:
             f.write(new_data)
 
-    @classmethod
-    def _req_get(cls, url, host=None):
-        cls._headers['User-Agent'] = cls._ua.random
+    # @classmethod
+    # def _req_get(cls, url, host=None):
+    #     cls._headers['User-Agent'] = cls._ua.random
+    #
+    #     if host is None:
+    #         cls._headers.pop('Host')
+    #     else:
+    #         cls._headers['Host'] = host
+    #
+    #     return requests.get(url, headers=cls._headers)
 
-        if host is None:
-            cls._headers.pop('Host')
-        else:
-            cls._headers['Host'] = host
 
-        return requests.get(url, headers=cls._headers)
+def task(sa):
+    sa.up_down_limit()
 
 
 def main():
     sa = StockAnalysis()
-    sa.up_down_limit()
+    # task(sa)
+    scheduler = BlockingScheduler(timezone='Asia/Shanghai')
+    scheduler.add_job(func=task, args=(sa,), trigger='cron', minute='*/5')
+    scheduler.start()
 
 
 if __name__ == '__main__':
