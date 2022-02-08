@@ -140,17 +140,17 @@ class StockAnalysis:
 
         ins = ''
         for limit in limits:
-            ins += f'\n\t\t<caption>{limit[1]}  更新时间：{self.limit_renew_time}</caption>\n\t\t<tr>'
+            ins += f'\n\t\t\t<caption>{limit[1]}  更新时间：{self.limit_renew_time}</caption>\n\t\t\t<tr>'
             for i in limit[0].columns.tolist():
                 ins += f'<th>{str(i)}</th>'
             ins += '</tr>'
             for i in range(limit[0].shape[0]):
-                ins += '\n\t\t<tr>'
+                ins += '\n\t\t\t<tr>'
                 for j in limit[0].iloc[i].tolist():
                     ins += f'<td>{str(j)}</td>'
                 ins += '</tr>'
 
-        new_data = re.sub('<table id="upLimit">(.*?)</table>', f'<table id="upLimit">{ins}\n\t</table>',
+        new_data = re.sub('<table id="upLimit">(.*?)</table>', f'<table id="upLimit">{ins}\n\t\t</table>',
                           data, flags=re.S)
 
         # 2. 涨跌停板关键词 TODO: 补跌停板的关键词
@@ -162,11 +162,11 @@ class StockAnalysis:
 
         ins = ''
         for limit in limits:
-            ins += f'\n\t\t<caption>{limit[1]}</caption>\n\t\t<tr><th>关键词</th><th>次数</th></tr>'
+            ins += f'\n\t\t\t<caption>{limit[1]}</caption>\n\t\t\t<tr><th>关键词</th><th>次数</th></tr>'
             for i in limit[0]:
-                ins += f'\n\t\t<tr><td>{i[0]}</td><td>{i[1]}</td></tr>'
+                ins += f'\n\t\t\t<tr><td>{i[0]}</td><td>{i[1]}</td></tr>'
 
-        new_data = re.sub('<table id="upLimitKeys">(.*?)</table>', f'<table id="upLimitKeys">{ins}\n\t</table>',
+        new_data = re.sub('<table id="upLimitKeys">(.*?)</table>', f'<table id="upLimitKeys">{ins}\n\t\t</table>',
                           new_data, flags=re.S)
 
         # 保存
