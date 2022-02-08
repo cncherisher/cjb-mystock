@@ -185,6 +185,34 @@ class StockAnalysis:
     #     return requests.get(url, headers=cls._headers)
 
 
+def ctrl_task1(scheduler, sa):
+    global ctrl_flag
+    if ctrl_flag == 0:
+        print('开盘开盘！！！')
+        scheduler.add_job(func=task, args=(sa,), trigger='interval', id='task', minutes=5)
+        ctrl_flag = 1
+    else:
+        print('中午休市，下午再战！')
+        scheduler.remove_job('task')
+        ctrl_flag = 0
+        scheduler.resume_job('ctrl_task2')
+        scheduler.pause_job('ctrl_task1')
+
+
+def ctrl_task2(scheduler, sa):
+    global ctrl_flag
+    if ctrl_flag == 0:
+        print('开盘开盘！！！')
+        scheduler.add_job(func=task, args=(sa,), trigger='interval', id='task', minutes=5)
+        ctrl_flag = 1
+    else:
+        print('休市休市，明天再战！')
+        scheduler.remove_job('task')
+        ctrl_flag = 0
+        scheduler.resume_job('ctrl_task1')
+        scheduler.pause_job('ctrl_task2')
+
+
 def task(sa):
     sa.up_down_limit()
 
@@ -193,9 +221,12 @@ def main():
     sa = StockAnalysis()
     # task(sa)
     scheduler = BlockingScheduler(timezone='Asia/Shanghai')
-    scheduler.add_job(func=task, args=(sa,), trigger='cron', minute='*/5')
+    scheduler.add_job(func=ctrl_task1, args=(scheduler, sa), trigger='cron', id='ctrl_task1', hour='9, 11', minute=30)
+    scheduler.add_job(func=ctrl_task2, args=(scheduler, sa), trigger='cron', id='ctrl_task2', hour='13, 15')
+    scheduler.pause_job('ctrl_task2')
     scheduler.start()
 
 
 if __name__ == '__main__':
+    ctrl_flag = 0
     main()
