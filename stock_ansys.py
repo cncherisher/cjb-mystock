@@ -34,7 +34,7 @@ class StockAnalysis:
 
         # self.limit_print()
 
-        self.limit_webrenew('./html/limit.html')
+        self.limit_webrenew('/root/www/html/limit.html')
 
     def limit_get(self, order):
         self.limit_renew_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
@@ -221,8 +221,10 @@ def main():
     sa = StockAnalysis()
     # task(sa)
     scheduler = BlockingScheduler(timezone='Asia/Shanghai')
-    scheduler.add_job(func=ctrl_task1, args=(scheduler, sa), trigger='cron', id='ctrl_task1', hour='9, 11', minute=30)
-    scheduler.add_job(func=ctrl_task2, args=(scheduler, sa), trigger='cron', id='ctrl_task2', hour='13, 15')
+    scheduler.add_job(func=ctrl_task1, args=(scheduler, sa), trigger='cron', id='ctrl_task1',
+                      day_of_week='mon-fri', hour='9, 11', minute=30)
+    scheduler.add_job(func=ctrl_task2, args=(scheduler, sa), trigger='cron', id='ctrl_task2',
+                      day_of_week='mon-fri', hour='13, 15')
     scheduler.pause_job('ctrl_task2')
     scheduler.start()
 
