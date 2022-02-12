@@ -1,4 +1,4 @@
-# coding:utf-8
+# coding: utf-8
 
 # import requests
 # from fake_useragent import UserAgent
@@ -169,13 +169,8 @@ class StockAnalysis:
             f.write(new_data)
 
     # @classmethod
-    # def _req_get(cls, url, host=None):
+    # def _req_get(cls, url):
     #     cls._headers['User-Agent'] = cls._ua.random
-    #
-    #     if host is None:
-    #         cls._headers.pop('Host')
-    #     else:
-    #         cls._headers['Host'] = host
     #
     #     return requests.get(url, headers=cls._headers)
 
