@@ -65,19 +65,19 @@ class StockAnalysis:
         print("selenium get succeeded!")
 
         # TODO: 解决网页未加载完成的问题
-        time.sleep(1)
+        time.sleep(3)
         xpath = '//*[@id="iwcTableWrapper"]/div[2]/div[2]'
         e = wd.find_element("xpath", xpath)
         e.click()
         print("selenium click1 succeeded!")
 
-        time.sleep(1)
+        time.sleep(3)
         xpath = '//*[@id="iwcTableWrapper"]/div[2]/div[2]/div/ul/li[3]'
         e = wd.find_element("xpath", xpath)
         e.click()
         print("selenium click2 succeeded!")
 
-        time.sleep(3)
+        time.sleep(2)
         xpath = '//*[@id="iwc-table-container"]/div[5]/div[1]/div[2]/table/tbody'
         raw_data = wd.find_element("xpath", xpath).text
         data_list = re.split('\n', raw_data)
