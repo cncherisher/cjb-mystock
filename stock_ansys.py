@@ -182,6 +182,7 @@ def ctrl_task1(scheduler, sa):
         scheduler.add_job(func=task, args=(sa,), trigger='interval', id='task', minutes=5)
         ctrl_flag = 1
     else:
+        time.sleep(10)
         print('中午休市，下午再战！')
         scheduler.remove_job('task')
         ctrl_flag = 0
@@ -196,6 +197,7 @@ def ctrl_task2(scheduler, sa):
         scheduler.add_job(func=task, args=(sa,), trigger='interval', id='task', minutes=5)
         ctrl_flag = 1
     else:
+        time.sleep(10)
         print('休市休市，明天再战！')
         scheduler.remove_job('task')
         ctrl_flag = 0

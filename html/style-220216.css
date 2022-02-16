@@ -1,0 +1,33 @@
+.cent {
+    text-align: center;
+}
+
+#upLimitKeys {
+    background-color: aquamarine;
+}
+
+table {
+    margin: auto;
+}
+
+button {
+    margin: 1ex;
+}
+
+input {
+    margin: 1ex;
+}
+
+div {
+    margin: 1ex;
+}
+
+textarea {
+    resize: none;
+    padding: 10px;
+    margin: 1ex 2em 1ex;
+    line-height: 1.5;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    box-shadow: 1px 1px 1px #999;
+}
