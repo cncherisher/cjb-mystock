@@ -9,13 +9,13 @@ limitBtn.addEventListener('click', (e) => {
 });
 
 
-const FundBtn = document.querySelector('#FundBtn');
+// const FundBtn = document.querySelector('#FundBtn');
 
-FundBtn.addEventListener('click', (e) => {
-    e.preventDefault();  // 禁止默认操作
-    console.log('click FundBtn');
-    window.location.href = "./test";
-});
+// FundBtn.addEventListener('click', (e) => {
+//     e.preventDefault();  // 禁止默认操作
+//     console.log('click FundBtn');
+//     window.location.href = "./test";
+// });
 
 
 const d3 = document.querySelector('#d3')
