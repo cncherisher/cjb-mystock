@@ -18,7 +18,7 @@ class StockAnalysis:
     #     'User-Agent': '',
     #     'Host': ''
     # }
-    # _ua = UserAgent(path="fake-useragent-0.1.11.json")
+    # _ua = UserAgent(path="./conf/fake-useragent-0.1.11.json")
 
     def __init__(self):
         self.limit_renew_time = ''
@@ -34,7 +34,7 @@ class StockAnalysis:
         # self.limit_get('down')
 
         # self.limit_print()
-        self.limit_webrenew('./html/limit.html')
+        self.limit_webrenew('../html/limit.html')
 
     def limit_get(self, order):
         self.limit_renew_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
