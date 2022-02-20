@@ -70,20 +70,13 @@ class FundAnalysis:
 app = Flask(__name__)
 
 
-@app.route('/test', methods=['POST'])
-def index():
-    fund_code = request.form.get('FundCode')
+@app.route('/fund/analysis', methods=['POST'])
+def fund_analy():
+    fund_code = request.form.get('fundCode')
     fa = FundAnalysis(fund_code)
     fa.fund_check()
 
-    return str(fa.web_display())
-
-
-@app.route('/test2', methods=['POST'])
-def index():
-    tt = request.form.get('tt')
-    
-    return str(tt)
+    return fa.web_display()
 
 
 # ---------------------------------------------------------------------
