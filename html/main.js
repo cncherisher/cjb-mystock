@@ -1,13 +1,4 @@
-// button
-
-const limitBtn = document.querySelector('#limitBtn');
-
-limitBtn.addEventListener('click', (e) => {
-    e.preventDefault();  // 禁止默认操作
-    console.log('click limitBtn');
-    window.location.href = "./limit.html";
-});
-
+// div3
 
 const d3 = document.querySelector('#d3')
 const disciplineBtn = document.querySelector('#disciplineBtn');
