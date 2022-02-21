@@ -6,10 +6,20 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <!-- <meta name="viewport" content="width=device-width, initial-scale=1.0"> -->
     <title>涨跌停板</title>
-	<link rel="stylesheet" href="style.css?v=1645329322">
+	<link rel="stylesheet" href="bootstrap.min.css?v=1645440800">
 </head>
 
 <body>
+	<nav class="navbar navbar-expand-md navbar-light bg-light">
+        <a class="navbar-brand" href="index.html">首页</a>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav">
+                <li class="nav-item active">
+                    <a class="nav-link" href="#">Trading discipline</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
 	<div class="cent"><table><tr>
 		<td valign="top"><table id="upLimit">
 			<caption>涨停板  更新时间：2022-02-16 23:06:20</caption>
@@ -34,6 +44,25 @@
 			<tr><td>传媒</td><td>3</td></tr>
 			<tr><td>房地产</td><td>3</td></tr>
 			<tr><td>工业母机</td><td>3</td></tr>
+		</table></td>
+	</tr></table></div>
+	<hr>
+	<div class="cent"><table><tr>
+		<td valign="top"><table id="downLimit">
+			<caption>跌停板  更新时间：2022-02-16 23:06:20</caption>
+			<tr><th>股票代码</th><th>股票简称</th><th>现价</th><th>涨停原因</th><th>开板次数</th><th>流通市值</th><th>几天几板</th><th>涨停类型</th></tr>
+			<tr><td>002849</td><td>威星智能</td><td>15.27</td><td>智能燃气表+物联网</td><td>0</td><td>15.47亿</td><td>2天2板</td><td>【一字涨停】;【缩量涨停】</td></tr>
+			<tr><td>300649</td><td>杭州园林</td><td>25.00</td><td>园林工程</td><td>3</td><td>25.82亿</td><td>2天2板</td><td>【放量涨停】</td></tr>
+			<tr><td>688171</td><td>纬德信息</td><td>35.42</td><td>科创次新股+工业互联网</td><td>1</td><td>6.75亿</td><td>首板涨停</td><td>【放量涨停】</td></tr>
+			<tr><td>002835</td><td>同为股份</td><td>12.78</td><td>安防</td><td>2</td><td>16.04亿</td><td>首板涨停</td><td>【放量涨停】</td></tr>
+		</table></td>
+		<td valign="top"><table id="downLimitKeys">
+			<caption>跌停板关键词</caption>
+			<tr><th>关键词</th><th>次数</th></tr>
+			<tr><td>园林工程</td><td>5</td></tr>
+			<tr><td>区块链</td><td>4</td></tr>
+			<tr><td>物联网</td><td>3</td></tr>
+			<tr><td>5G</td><td>3</td></tr>
 		</table></td>
 	</tr></table></div>
 </body>

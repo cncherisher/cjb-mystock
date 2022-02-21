@@ -1,6 +1,6 @@
 # coding: utf-8
 
-from flask import Flask, request, jsonify
+from flask import Flask, request, render_template, flash
 from fake_useragent import UserAgent
 import requests
 import parsel

@@ -2,7 +2,7 @@ import re
 import time
 
 
-html_list = ['index.html', 'limit.html']
+html_list = ['index.html', 'limit.html', 'fundcode.html']
 
 pat = '[?]v=[0-9]+'
 
