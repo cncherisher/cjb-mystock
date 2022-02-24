@@ -1,34 +1,19 @@
-<!DOCTYPE html>
-<html lang="en">
+{% extends 'base.html' %}
 
-<head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>基金分析</title>
-    <link rel="stylesheet" href="bootstrap.min.css?v=1645440800">
-</head>
+{% block viewport %} <meta name="viewport" content="width=device-width, initial-scale=1.0"> {% endblock %}
 
-<body>
-    <nav class="navbar navbar-expand-md navbar-light bg-light">
-        <a class="navbar-brand" href="index.html">首页</a>
-        <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav">
-                <li class="nav-item active">
-                    <a class="nav-link" href="#">Trading discipline</a>
-                </li>
-            </ul>
-        </div>
-    </nav>
+{% block title %} 基金分析 {% endblock %}
+
+{% block content %}
     <div class="container">
-        <form method="POST" action="fund/analysis">
-            请输入基金代码：<input name='fundCode' type="text" maxlength="6" AutoComplete="off" style="width: 80px;">
-            <input type="submit" value="确定">
+        <form method="POST" action="/stock/fundAnalysis" id="fundCodeForm">
+            请输入基金代码：<input name='fund-code' id='fundCodeInput' type="text" maxlength="6" AutoComplete="off" style="width: 80px;">
+            <input type="submit" id='fundCodeSubmit' value="确定">
         </form>
     </div>
-</body>
 
-</html>
+    <script src="{{url_for('static', filename='stock-js/main-v=1645628247.js')}}"></script>
+{% endblock %}
 
 
 

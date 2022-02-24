@@ -1,31 +1,16 @@
-<!DOCTYPE html>
-<html lang="en">
+{% extends 'base.html' %}
 
-<head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Stock Website by CJZ</title>
-    <link rel="stylesheet" href="bootstrap.min.css?v=1645440800">
-</head>
+{% block viewport %} <meta name="viewport" content="width=device-width, initial-scale=1.0"> {% endblock %}
 
-<body>
-    <nav class="navbar navbar-expand-md navbar-light bg-light">
-        <a class="navbar-brand" href="index.html">首页</a>
-        <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav">
-                <li class="nav-item active">
-                    <a class="nav-link" href="#">Trading discipline</a>
-                </li>
-            </ul>
-        </div>
-    </nav>
+{% block title %} Stock Website by CJZ {% endblock %}
+
+{% block content %}
     <div class="container">
-        <h3><a href="limit.html">涨跌停板</a></h3><hr>
-        <h3><a href="fundcode.html">基金分析（测试中）</a></h3><hr>
+        <!-- {% for message in get_flashed_messages() %}
+        <div class="alert alert-danger">{{ message }}</div>
+        {% endfor %} -->
+        <h3><a href="/stock/limit">涨跌停板</a></h3><hr>
+        <h3><a href="/stock/fundAnalysis">基金分析（测试中）</a></h3><hr>
     </div>
-    
-    <script src="main.js?v=1645440800"></script>
-</body>
+{% endblock %}
 
-</html>
