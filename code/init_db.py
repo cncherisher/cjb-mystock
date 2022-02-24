@@ -7,17 +7,15 @@ connection = sqlite3.connect('../database.db')
 with open('db.sql') as f:
     connection.executescript(f.read())
 
-# # 创建一个执行句柄，用来执行后面的语句
-# cur = connection.cursor()
+# 创建一个执行句柄，用来执行后面的语句
+cur = connection.cursor()
 
-# # 插入两条文章
-# cur.execute("INSERT INTO posts (title, content) VALUES (?, ?)",
-#             ('学习Flask1', '跟麦叔学习flask第一部分')
-#             )
+# 插入两条记录
+cur.execute("INSERT INTO stockLimits (limitType, content, renewTime) VALUES (?, ?, ?)",
+            ('ZT', '[[1, 2, 3], [4, 5, 6]]', 1645679301))
 
-# cur.execute("INSERT INTO posts (title, content) VALUES (?, ?)",
-#             ('学习Flask2', '跟麦叔学习flask第二部分')
-#             )
+cur.execute("INSERT INTO stockLimits (limitType, content, renewTime) VALUES (?, ?, ?)",
+            ('DT', '[[7, 8, 9], [1, 2, 3]]', 1645679301))
 
 # 提交前面的数据操作
 connection.commit()

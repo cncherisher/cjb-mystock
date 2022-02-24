@@ -9,6 +9,21 @@ import parsel
 import time
 
 
+def get_db_connection():
+    # 创建数据库链接到database.db文件
+    conn = sqlite3.connect('database.db')
+    # 设置数据的解析方法，有了这个设置，就可以像字典一样访问每一列数据
+    conn.row_factory = sqlite3.Row
+    return conn
+
+
+def get_db_limit(limit_type):
+    conn = get_db_connection()
+    db_limit = conn.execute('SELECT * FROM stockLimits WHERE limitType = ?', (limit_type,)).fetchone()
+    conn.close()
+    return db_limit
+
+
 class StockAnalysis:
     _headers = {
         'User-Agent': ''
@@ -27,16 +42,16 @@ class StockAnalysis:
             get_type = limit[0]
             sort_type = limit[1]
             keys = limit[2]
-        
+
             self.renew_timestamp = time.time()
             renew_struct_time = time.localtime(self.renew_timestamp)
             self.renew_time = time.strftime("%Y-%m-%d %H:%M:%S", renew_struct_time)
 
             url = f'http://push2ex.eastmoney.com/getTopic{get_type}Pool' \
-                f'?ut=7eea3edcaed734bea9cbfc24409ed989&dpt=wz.ztzt' \
-                f'&Pageindex=0&pagesize=170&sort={sort_type}' \
-                f'&date={time.strftime("%Y%m%d", renew_struct_time)}' \
-                f'&_={int(self.renew_timestamp * 1000)}'
+                  f'?ut=7eea3edcaed734bea9cbfc24409ed989&dpt=wz.ztzt' \
+                  f'&Pageindex=0&pagesize=170&sort={sort_type}' \
+                  f'&date={time.strftime("%Y%m%d", renew_struct_time)}' \
+                  f'&_={int(self.renew_timestamp * 1000)}'
 
             data = self._req_get(url).json()
 
@@ -87,7 +102,7 @@ class FundAnalysis:
             raw_list = html_data.xpath(
                 '//*[@id="position_shares"]/div[1]//text()').getall()
             raw_list = [i for i in raw_list if (
-                i[0] != ' ') and (i != '股吧') and (i != '相关资讯')]
+                    i[0] != ' ') and (i != '股吧') and (i != '相关资讯')]
 
             hold_th = raw_list[0:3]
             hold_tds = raw_list[3:-2]
@@ -123,11 +138,37 @@ def index():
 
 
 @app.route('/stock/limit')
-def limit():  # TODO:
-    sa = StockAnalysis()
-    sa.get_limit()
+def limit():
+    now = time.localtime()
+    down_limit = get_db_limit('DT')
+    last = time.localtime(down_limit['renewTime'])
 
-    return render_template('limit.html', upLimits=sa.up_limit, downLimits=sa.down_limit, renewTime=sa.renew_time)
+    # 判断是否需要更新
+    if (last.tm_wday < 5) and ((9 <= last.tm_hour <= 11) or (13 <= last.tm_hour <= 15)) \
+            and (time.mktime(now) - time.mktime(last) > 180):  # 需要
+        sa = StockAnalysis()
+        sa.get_limit()
+
+        conn = get_db_connection()
+        conn.execute('UPDATE stockLimits SET content = ?, renewTime = ?'
+                     ' WHERE limitType = ?',
+                     (str(sa.up_limit), sa.renew_timestamp, 'ZT'))
+        conn.execute('UPDATE stockLimits SET content = ?, renewTime = ?'
+                     ' WHERE limitType = ?',
+                     (str(sa.down_limit), sa.renew_timestamp, 'DT'))
+        conn.commit()
+        conn.close()
+
+        return render_template('limit.html', upLimits=sa.up_limit,
+                               downLimits=sa.down_limit,
+                               renewTime=sa.renew_time)
+    else:  # 不需要
+        up_limit = get_db_limit('ZT')
+        last_str_time = time.strftime("%Y-%m-%d %H:%M:%S", last)
+
+        return render_template('limit.html', upLimits=eval(up_limit['content']),
+                               downLimits=eval(down_limit['content']),
+                               renewTime=last_str_time)
 
 
 @app.route('/stock/fundAnalysis', methods=['GET', 'POST'])
@@ -137,12 +178,20 @@ def fund_analysis():
         fa = FundAnalysis(fund_code)
 
         if fa.fund_hold() == 1:
-            return render_template('fundAnalysis.html', stockHoldTh=fa.stock_hold[0], stockHoldTds=fa.stock_hold[1],
-                                   stockHoldP=fa.stock_hold[2])
+            return render_template('fundAnalysis.html', stockHoldTh=fa.stock_hold[0],
+                                   stockHoldTds=fa.stock_hold[1], stockHoldP=fa.stock_hold[2])
         else:
             return "代码错误，请重新输入！"  # TODO:
 
     return render_template('fundCode.html')
 
 
-# app.run()
+app.run()
+
+
+# down_limit = get_db_limit('DT')
+# for i in down_limit:
+#     print(i)
+# last = time.localtime(down_limit['renewTime'])
+
+
