@@ -193,5 +193,5 @@ def fund_analysis():
     return render_template('fundCode.html')
 
 
-# app.run()
+app.run()
 
