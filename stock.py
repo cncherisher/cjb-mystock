@@ -17,9 +17,9 @@ def get_db_connection():
     return conn
 
 
-def get_db_limit(limit_type):
+def get_db_limit(limit_key):
     conn = get_db_connection()
-    db_limit = conn.execute('SELECT * FROM stockLimits WHERE limitType = ?', (limit_type,)).fetchone()
+    db_limit = conn.execute('SELECT * FROM stockLimits WHERE limitKey = ?', (limit_key,)).fetchone()
     conn.close()
     return db_limit
 
@@ -139,23 +139,29 @@ def index():
 
 @app.route('/stock/limit')
 def limit():
-    now = time.localtime()
-    down_limit = get_db_limit('DT')
-    last = time.localtime(down_limit['renewTime'])
+    limit_last = get_db_limit('last')
+    laststamp = int(limit_last['content'])
+    last = time.localtime(laststamp)
+    nowstamp = int(time.time())
+    now = time.localtime(nowstamp)
 
     # 判断是否需要更新
-    if (last.tm_wday < 5) and ((9 <= last.tm_hour <= 11) or (13 <= last.tm_hour <= 15)) \
-            and (time.mktime(now) - time.mktime(last) > 180):  # 需要
+    if ((now.tm_wday < 5) and ((9 <= now.tm_hour <= 12) or (13 <= now.tm_hour <= 15))
+        or (last.tm_wday < 5) and ((9 <= last.tm_hour <= 12) or (13 <= last.tm_hour <= 15))) \
+            and (nowstamp - laststamp > 180):  # 需要
         sa = StockAnalysis()
         sa.get_limit()
 
         conn = get_db_connection()
-        conn.execute('UPDATE stockLimits SET content = ?, renewTime = ?'
-                     ' WHERE limitType = ?',
-                     (str(sa.up_limit), sa.renew_timestamp, 'ZT'))
-        conn.execute('UPDATE stockLimits SET content = ?, renewTime = ?'
-                     ' WHERE limitType = ?',
-                     (str(sa.down_limit), sa.renew_timestamp, 'DT'))
+        conn.execute('UPDATE stockLimits SET content = ?'
+                     ' WHERE limitKey = ?',
+                     (str(int(sa.renew_timestamp)), 'last'))
+        conn.execute('UPDATE stockLimits SET content = ?'
+                     ' WHERE limitKey = ?',
+                     (str(sa.up_limit), 'ZT'))
+        conn.execute('UPDATE stockLimits SET content = ?'
+                     ' WHERE limitKey = ?',
+                     (str(sa.down_limit), 'DT'))
         conn.commit()
         conn.close()
 
@@ -164,6 +170,7 @@ def limit():
                                renewTime=sa.renew_time)
     else:  # 不需要
         up_limit = get_db_limit('ZT')
+        down_limit = get_db_limit('DT')
         last_str_time = time.strftime("%Y-%m-%d %H:%M:%S", last)
 
         return render_template('limit.html', upLimits=eval(up_limit['content']),
@@ -186,12 +193,5 @@ def fund_analysis():
     return render_template('fundCode.html')
 
 
-app.run()
-
-
-# down_limit = get_db_limit('DT')
-# for i in down_limit:
-#     print(i)
-# last = time.localtime(down_limit['renewTime'])
-
+# app.run()
 
