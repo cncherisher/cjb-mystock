@@ -1,26 +1,22 @@
 {% extends 'base.html' %}
 
-{% block viewport %} <meta name="viewport" content="width=device-width, initial-scale=1.0"> {% endblock %}
+{% block viewport %}<meta name="viewport" content="width=device-width, initial-scale=1.0">{% endblock %}
 
 {% block title %} 基金分析 {% endblock %}
 
 {% block content %}
-    <div class="container">
-        <table>
-            <caption>基金十大持仓股</caption>
-            <tr>
-                {% for i in stockHoldTh %}
-                <th>{{ i }}</th>
-                {% endfor %}
-            </tr>
-            {% for stockHoldTd in stockHoldTds %}
-            <tr>
-                {% for i in stockHoldTd %}
-                <th>{{ i }}</th>
-                {% endfor %}
-            </tr>
-            {% endfor %}
-        </table>
-        <p><span>{{ stockHoldP[0] }}</span><span>{{ stockHoldP[1] }}</span></p>
-    </div>
+<div class="container">
+    <table>
+        <caption>基金十大持仓股</caption>
+        <tr>
+            {% for i in stockHoldTh %}<th>{{ i }}</th>{% endfor %}
+        </tr>
+        {% for stockHoldTd in stockHoldTds %}
+        <tr>
+            {% for i in stockHoldTd %}<td>{{ i }}</td>{% endfor %}
+        </tr>
+        {% endfor %}
+    </table>
+    <p><span>{{ stockHoldP[0] }}</span><span>{{ stockHoldP[1] }}</span></p>
+</div>
 {% endblock %}

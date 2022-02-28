@@ -2,26 +2,12 @@
 
 import os
 from flask import Flask, request, render_template, flash
-import sqlite3
+import mysqlx
+import pymysql
 import requests
 from fake_useragent import UserAgent
 import parsel
 import time
-
-
-def get_db_connection():
-    # 创建数据库链接到database.db文件
-    conn = sqlite3.connect('database.db')
-    # 设置数据的解析方法，有了这个设置，就可以像字典一样访问每一列数据
-    conn.row_factory = sqlite3.Row
-    return conn
-
-
-def get_db_limit(limit_key):
-    conn = get_db_connection()
-    db_limit = conn.execute('SELECT * FROM stockLimits WHERE limitKey = ?', (limit_key,)).fetchone()
-    conn.close()
-    return db_limit
 
 
 class StockAnalysis:
@@ -31,6 +17,8 @@ class StockAnalysis:
     _ua = UserAgent(path="code/fake-useragent-0.1.11.json")
 
     def __init__(self):
+        self.mysql = {'host': 'localhost', 'port': 3306, 'user': 'root', 'passwd': '', 'db': 'mystock',
+                      'charset': 'utf8'}
         self.renew_timestamp = None
         self.renew_time = None
         self.up_limit = None
@@ -72,6 +60,32 @@ class StockAnalysis:
                 self.up_limit = stocks
             else:
                 self.down_limit = stocks
+
+    def get_db_limits(self, limit_keys):
+        conn = pymysql.connect(**self.mysql)
+        cursor = conn.cursor()
+
+        db_limits = []
+        for i in limit_keys:
+            cursor.execute("select * from stock_limits where limitKey = %s", i)
+            db_limits.append(cursor.fetchone())
+
+        conn.commit()
+        cursor.close()
+        conn.close()
+
+        return db_limits
+
+    def alter_db_limits(self, limits):
+        conn = pymysql.connect(**self.mysql)
+        cursor = conn.cursor()
+
+        for limit in limits:
+            cursor.execute("UPDATE stock_limits SET content = %s WHERE limitKey = %s", (limit[1], limit[0]))
+
+        conn.commit()
+        cursor.close()
+        conn.close()
 
     @classmethod
     def _req_get(cls, url):
@@ -137,44 +151,39 @@ def index():
     return render_template('index.html')
 
 
+@app.route('/stock/discipline')
+def discipline():
+    return render_template('discipline.html')
+
+
 @app.route('/stock/limit')
 def limit():
-    limit_last = get_db_limit('last')
-    laststamp = int(limit_last['content'])
+    sa = StockAnalysis()
+
+    db_last = sa.get_db_limits(['last'])
+    laststamp = int(db_last[0][1])
     last = time.localtime(laststamp)
     nowstamp = int(time.time())
     now = time.localtime(nowstamp)
 
     # 判断是否需要更新
-    if ((now.tm_wday < 5) and ((9 <= now.tm_hour <= 12) or (13 <= now.tm_hour <= 15))
-        or (last.tm_wday < 5) and ((9 <= last.tm_hour <= 12) or (13 <= last.tm_hour <= 15))) \
+    if ((now.tm_wday < 5) and ((9 <= now.tm_hour <= 11) or (13 <= now.tm_hour <= 14))
+        or (last.tm_wday < 5) and ((9 <= last.tm_hour <= 11) or (13 <= last.tm_hour <= 14))) \
             and (nowstamp - laststamp > 180):  # 需要
-        sa = StockAnalysis()
         sa.get_limit()
 
-        conn = get_db_connection()
-        conn.execute('UPDATE stockLimits SET content = ?'
-                     ' WHERE limitKey = ?',
-                     (str(int(sa.renew_timestamp)), 'last'))
-        conn.execute('UPDATE stockLimits SET content = ?'
-                     ' WHERE limitKey = ?',
-                     (str(sa.up_limit), 'ZT'))
-        conn.execute('UPDATE stockLimits SET content = ?'
-                     ' WHERE limitKey = ?',
-                     (str(sa.down_limit), 'DT'))
-        conn.commit()
-        conn.close()
+        db_limits = (('last', str(int(sa.renew_timestamp))), ('ZT', str(sa.up_limit)), ('DT', str(sa.down_limit)))
+        sa.alter_db_limits(db_limits)
 
         return render_template('limit.html', upLimits=sa.up_limit,
                                downLimits=sa.down_limit,
                                renewTime=sa.renew_time)
     else:  # 不需要
-        up_limit = get_db_limit('ZT')
-        down_limit = get_db_limit('DT')
+        db_limits = sa.get_db_limits(('ZT', 'DT'))
         last_str_time = time.strftime("%Y-%m-%d %H:%M:%S", last)
 
-        return render_template('limit.html', upLimits=eval(up_limit['content']),
-                               downLimits=eval(down_limit['content']),
+        return render_template('limit.html', upLimits=eval(db_limits[0][1]),
+                               downLimits=eval(db_limits[1][1]),
                                renewTime=last_str_time)
 
 
@@ -193,5 +202,6 @@ def fund_analysis():
     return render_template('fundCode.html')
 
 
-app.run()
+# app.run()
 
+# 1645679301

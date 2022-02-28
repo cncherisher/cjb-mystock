@@ -1,18 +1,18 @@
 {% extends 'base.html' %}
 
-{% block viewport %} <meta name="viewport" content="width=device-width, initial-scale=1.0"> {% endblock %}
+{% block viewport %}<meta name="viewport" content="width=device-width, initial-scale=1.0">{% endblock %}
 
 {% block title %} 基金分析 {% endblock %}
 
 {% block content %}
-    <div class="container">
-        <form method="POST" action="/stock/fundAnalysis" id="fundCodeForm">
-            请输入基金代码：<input name='fund-code' id='fundCodeInput' type="text" maxlength="6" AutoComplete="off" style="width: 80px;">
-            <input type="submit" id='fundCodeSubmit' value="确定">
-        </form>
-    </div>
+<div class="container">
+    <form method="POST" action="/stock/fundAnalysis" id="fundCodeForm">
+        请输入基金代码：<input name='fund-code' id='fundCodeInput' type="text" maxlength="6" AutoComplete="off" style="width: 80px;">
+        <input type="submit" id='fundCodeSubmit' value="确定">
+    </form>
+</div>
 
-    <script src="{{url_for('static', filename='stock-js/main-v=1645628247.js')}}"></script>
+<script src="{{url_for('static', filename='stock-js/main-v=1645628247.js')}}"></script>
 {% endblock %}
 
 

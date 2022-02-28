@@ -3,74 +3,70 @@
 {% block title %} 涨跌停板 {% endblock %}
 
 {% block content %}
-	<style type="text/css">
-		table {
-			margin: auto;
-		}
-		.cent {
-			text-align: center;
-		}
-		.limitKeys {
-			background-color: aquamarine;
-		}
-	</style>
+<style type="text/css">
+	table {
+		margin: auto;
+	}
+	.cent {
+		text-align: center;
+	}
+	.limitKeys {
+		background-color: aquamarine;
+	}
+</style>
 
-	<div class="cent">
-		<!-- <table><tr>
-		<td valign="top"> -->
-			<table>
-				<caption>涨停板  更新时间：{{ renewTime }}</caption>
-				<tr><th>序号</th><th>代码</th><th>名称</th><th>涨跌幅</th><th>最新价</th><th>换手率</th><th>炸板次数</th><th>连板数</th><th>所属行业</th></tr>
-				{% for upLimit in upLimits %}
-				<tr>
-					{% for i in upLimit %}
-					<td>{{ i }}</td>
-					{% endfor %}
-				</tr>
-				{% endfor %}
-			</table>
-		<!-- </td>
-		<td valign="top"> -->
-			<!-- <table class="limitKeys">
-				<caption>涨停板关键词</caption>
-				<tr><th>关键词</th><th>次数</th></tr>
-				{% for upLimitKey in upLimitKeys %}
-				<tr>
-					<td>{{ upLimitKey[0] }}</td>
-					<td>{{ upLimitKey[1] }}</td>
-				</tr>
-				{% endfor %}
-			</table> -->
-		<!-- </td>
-		</tr></table> -->
-	</div>
-	<hr>
-	<div class="cent">
-		<!-- <table><tr>
-		<td valign="top"> -->
-			<table>
-				<caption>跌停板  更新时间：{{ renewTime }}</caption>
-				<tr><th>序号</th><th>代码</th><th>名称</th><th>涨跌幅</th><th>最新价</th><th>换手率</th><th>连续跌停</th><th>开板次数</th><th>所属行业</th></tr>
-				{% for downLimit in downLimits %}
-				<tr>
-					{% for i in downLimit %}
-					<td>{{ i }}</td>
-					{% endfor %}
-				</tr>
-				{% endfor %}
-			</table>
-		<!-- </td>
-		<td valign="top"> -->
-			<!-- <table class="limitKeys">
-				<caption>跌停板关键词</caption>
-				<tr><th>关键词</th><th>次数</th></tr>
-				{% for downLimitKey in downLimitKeys %}
-				<tr><td>{{ downLimitKey[0] }}</td><td>{{ downLimitKey[1] }}</td></tr>
-				{% endfor %}
-			</table> -->
-		<!-- </td>
-		</tr></table> -->
-	</div>
+<div class="cent">
+	<!-- <table><tr>
+	<td valign="top"> -->
+		<table>
+			<caption>涨停板  更新时间：{{ renewTime }}</caption>
+			<tr><th>序号</th><th>代码</th><th>名称</th><th>涨跌幅</th><th>最新价</th><th>换手率</th><th>炸板次数</th><th>连板数</th><th>所属行业</th></tr>
+			{% for upLimit in upLimits %}
+			<tr>
+				{% for i in upLimit %}<td>{{ i }}</td>{% endfor %}
+			</tr>
+			{% endfor %}
+		</table>
+	<!-- </td>
+	<td valign="top"> -->
+		<!-- <table class="limitKeys">
+			<caption>涨停板关键词</caption>
+			<tr><th>关键词</th><th>次数</th></tr>
+			{% for upLimitKey in upLimitKeys %}
+			<tr>
+				<td>{{ upLimitKey[0] }}</td>
+				<td>{{ upLimitKey[1] }}</td>
+			</tr>
+			{% endfor %}
+		</table> -->
+	<!-- </td>
+	</tr></table> -->
+</div>
+<hr>
+<div class="cent">
+	<!-- <table><tr>
+	<td valign="top"> -->
+		<table>
+			<caption>跌停板  更新时间：{{ renewTime }}</caption>
+			<tr><th>序号</th><th>代码</th><th>名称</th><th>涨跌幅</th><th>最新价</th><th>换手率</th><th>连续跌停</th><th>开板次数</th><th>所属行业</th></tr>
+			{% for downLimit in downLimits %}
+			<tr>
+				{% for i in downLimit %}<td>{{ i }}</td>{% endfor %}
+			</tr>
+			{% endfor %}
+		</table>
+	<!-- </td>
+	<td valign="top"> -->
+		<!-- <table class="limitKeys">
+			<caption>跌停板关键词</caption>
+			<tr><th>关键词</th><th>次数</th></tr>
+			{% for downLimitKey in downLimitKeys %}
+			<tr><td>{{ downLimitKey[0] }}</td><td>{{ downLimitKey[1] }}</td></tr>
+			{% endfor %}
+		</table> -->
+	<!-- </td>
+	</tr></table> -->
+</div>
 {% endblock %}
 
 

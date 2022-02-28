@@ -1,16 +1,16 @@
 {% extends 'base.html' %}
 
-{% block viewport %} <meta name="viewport" content="width=device-width, initial-scale=1.0"> {% endblock %}
+{% block viewport %}<meta name="viewport" content="width=device-width, initial-scale=1.0">{% endblock %}
 
 {% block title %} Stock Website by CJZ {% endblock %}
 
 {% block content %}
-    <div class="container">
-        <!-- {% for message in get_flashed_messages() %}
-        <div class="alert alert-danger">{{ message }}</div>
-        {% endfor %} -->
-        <h3><a href="/stock/limit">涨跌停板</a></h3><hr>
-        <h3><a href="/stock/fundAnalysis">基金分析（测试中）</a></h3><hr>
-    </div>
+<div class="container">
+    <!-- {% for message in get_flashed_messages() %}
+    <div class="alert alert-danger">{{ message }}</div>
+    {% endfor %} -->
+    <h3><a href="/stock/limit">涨跌停板</a></h3><hr>
+    <h3><a href="/stock/fundAnalysis">基金分析（测试中）</a></h3><hr>
+</div>
 {% endblock %}
 
