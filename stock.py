@@ -2,7 +2,6 @@
 
 import os
 from flask import Flask, request, render_template, flash
-import mysqlx
 import pymysql
 import requests
 from fake_useragent import UserAgent
@@ -10,13 +9,27 @@ import parsel
 import time
 
 
-class StockAnalysis:
+class MyRequest:
     _headers = {
         'User-Agent': ''
     }
     _ua = UserAgent(path="code/fake-useragent-0.1.11.json")
 
     def __init__(self):
+        pass
+
+    @classmethod
+    def req_get(cls, url):
+        cls._headers['User-Agent'] = cls._ua.random
+        res = requests.get(url, headers=cls._headers)
+        res.encoding = 'utf-8'
+
+        return res
+
+
+class StockAnalysis(MyRequest):
+    def __init__(self):
+        super().__init__()
         self.mysql = {'host': 'localhost', 'port': 3306, 'user': 'root', 'passwd': '', 'db': 'mystock',
                       'charset': 'utf8'}
         self.renew_timestamp = None
@@ -25,11 +38,11 @@ class StockAnalysis:
         self.down_limit = None
 
     def get_limit(self):
-        for limit in [['ZT', 'fbt%3Aasc', ['c', 'n', 'zdp', 'p', 'hs', 'zbc', 'lbc', 'hybk']],
-                      ['DT', 'lbt%3Adesc', ['c', 'n', 'zdp', 'p', 'hs', 'days', 'oc', 'hybk']]]:
-            get_type = limit[0]
-            sort_type = limit[1]
-            keys = limit[2]
+        for k in [['ZT', 'fbt%3Aasc', ['c', 'n', 'zdp', 'p', 'hs', 'zbc', 'lbc', 'hybk']],
+                  ['DT', 'lbt%3Adesc', ['c', 'n', 'zdp', 'p', 'hs', 'days', 'oc', 'hybk']]]:
+            get_type = k[0]
+            sort_type = k[1]
+            keys = k[2]
 
             self.renew_timestamp = time.time()
             renew_struct_time = time.localtime(self.renew_timestamp)
@@ -41,7 +54,7 @@ class StockAnalysis:
                   f'&date={time.strftime("%Y%m%d", renew_struct_time)}' \
                   f'&_={int(self.renew_timestamp * 1000)}'
 
-            data = self._req_get(url).json()
+            data = self.req_get(url).json()
 
             stocks = []
             for i in range(data['data']['tc']):
@@ -61,54 +74,38 @@ class StockAnalysis:
             else:
                 self.down_limit = stocks
 
-    def get_db_limits(self, limit_keys):
+    def operate_db_limits(self, operate, limits):
         conn = pymysql.connect(**self.mysql)
         cursor = conn.cursor()
 
-        db_limits = []
-        for i in limit_keys:
-            cursor.execute("select * from stock_limits where limitKey = %s", i)
-            db_limits.append(cursor.fetchone())
+        if operate == 'get':
+            result = []
+            for i in limits:
+                cursor.execute("select * from stock_limits where limitKey = %s", i)
+                result.append(cursor.fetchone())
+        elif operate == 'alter':
+            for i in limits:
+                cursor.execute("UPDATE stock_limits SET content = %s WHERE limitKey = %s", (i[1], i[0]))
+            result = 1
+        else:
+            result = 0
 
         conn.commit()
         cursor.close()
         conn.close()
 
-        return db_limits
-
-    def alter_db_limits(self, limits):
-        conn = pymysql.connect(**self.mysql)
-        cursor = conn.cursor()
-
-        for limit in limits:
-            cursor.execute("UPDATE stock_limits SET content = %s WHERE limitKey = %s", (limit[1], limit[0]))
-
-        conn.commit()
-        cursor.close()
-        conn.close()
-
-    @classmethod
-    def _req_get(cls, url):
-        cls._headers['User-Agent'] = cls._ua.random
-        res = requests.get(url, headers=cls._headers)
-        res.encoding = 'utf-8'
-
-        return res
+        return result
 
 
-class FundAnalysis:
-    _headers = {
-        'User-Agent': ''
-    }
-    _ua = UserAgent(path="code/fake-useragent-0.1.11.json")
-
+class FundAnalysis(MyRequest):
     def __init__(self, code):
+        super().__init__()
         self.code = code
         self.stock_hold = None
 
     def fund_hold(self):
         url = f'http://fund.eastmoney.com/{self.code}.html'
-        res = self._req_get(url)
+        res = self.req_get(url)
 
         if res.status_code == 200:
             raw_data = res.text
@@ -129,14 +126,6 @@ class FundAnalysis:
             return 1
         else:
             return 0
-
-    @classmethod
-    def _req_get(cls, url):
-        cls._headers['User-Agent'] = cls._ua.random
-        res = requests.get(url, headers=cls._headers)
-        res.encoding = 'utf-8'
-
-        return res
 
 
 # ---------------------------------------------------------------------
@@ -160,7 +149,7 @@ def discipline():
 def limit():
     sa = StockAnalysis()
 
-    db_last = sa.get_db_limits(['last'])
+    db_last = sa.operate_db_limits('get', ['last'])
     laststamp = int(db_last[0][1])
     last = time.localtime(laststamp)
     nowstamp = int(time.time())
@@ -173,13 +162,13 @@ def limit():
         sa.get_limit()
 
         db_limits = (('last', str(int(sa.renew_timestamp))), ('ZT', str(sa.up_limit)), ('DT', str(sa.down_limit)))
-        sa.alter_db_limits(db_limits)
+        sa.operate_db_limits('alter', db_limits)
 
         return render_template('limit.html', upLimits=sa.up_limit,
                                downLimits=sa.down_limit,
                                renewTime=sa.renew_time)
     else:  # 不需要
-        db_limits = sa.get_db_limits(('ZT', 'DT'))
+        db_limits = sa.operate_db_limits('get', ('ZT', 'DT'))
         last_str_time = time.strftime("%Y-%m-%d %H:%M:%S", last)
 
         return render_template('limit.html', upLimits=eval(db_limits[0][1]),
@@ -200,7 +189,6 @@ def fund_analysis():
             return "代码错误，请重新输入！"  # TODO:
 
     return render_template('fundCode.html')
-
 
 # app.run()
 
